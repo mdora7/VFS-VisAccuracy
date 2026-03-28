@@ -39,7 +39,7 @@ A real-time VFS Global visa appointment tracker and application status monitor f
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/VFS-VisAccuracy.git
+git clone https://github.com/mdora7/VFS-VisAccuracy.git
 cd VFS-VisAccuracy
 
 # Install dependencies
