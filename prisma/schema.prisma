@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String?  @unique
+  telegram  String?  @unique
+  whatsapp  String?  @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trackers AppointmentTracker[]
+  statuses ApplicationStatus[]
+
+  @@map("users")
+}
+
+model AppointmentTracker {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  visaType       String
+  consulate      String
+  preferredDates String[]
+  active         Boolean  @default(true)
+  lastCheckedAt  DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  slots AppointmentSlot[]
+
+  @@map("appointment_trackers")
+}
+
+model AppointmentSlot {
+  id        String   @id @default(cuid())
+  trackerId String
+  tracker   AppointmentTracker @relation(fields: [trackerId], references: [id])
+  date      DateTime
+  time      String
+  available Boolean  @default(true)
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("appointment_slots")
+}
+
+model ApplicationStatus {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  referenceNumber String   @unique
+  currentStatus   String
+  previousStatus  String?
+  lastCheckedAt   DateTime?
+  notified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  history StatusHistory[]
+
+  @@map("application_statuses")
+}
+
+model StatusHistory {
+  id              String   @id @default(cuid())
+  applicationId   String
+  application     ApplicationStatus @relation(fields: [applicationId], references: [id])
+  status          String
+  changedAt       DateTime @default(now())
+
+  @@map("status_history")
+}
+
+model ScrapeLog {
+  id        String   @id @default(cuid())
+  type      String   // "appointment" | "status"
+  target    String
+  success   Boolean
+  error     String?
+  duration  Int      // ms
+  createdAt DateTime @default(now())
+
+  @@map("scrape_logs")
+}

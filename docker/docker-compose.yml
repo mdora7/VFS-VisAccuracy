@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: vfs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vfs_user
+      POSTGRES_PASSWORD: vfs_password
+      POSTGRES_DB: vfs_visaccuracy
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vfs_user -d vfs_visaccuracy"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: vfs-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../.env.local
+    environment:
+      DATABASE_URL: postgresql://vfs_user:vfs_password@db:5432/vfs_visaccuracy?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
